@@ -24,8 +24,10 @@ def get_data_scaler(config):
   """Data normalizer. Assume data are always in [0, 1]."""
   if config.data.centered:
     # Rescale to [-1, 1]
+    print("Centered data!")
     return lambda x: x * 2. - 1.
   else:
+    print("No centered data!")
     return lambda x: x
 
 
