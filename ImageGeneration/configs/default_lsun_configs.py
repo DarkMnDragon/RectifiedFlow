@@ -6,7 +6,7 @@ def get_default_configs():
   config = ml_collections.ConfigDict()
   # training
   config.training = training = ml_collections.ConfigDict()
-  config.training.batch_size = 64
+  config.training.batch_size = 32
   training.n_iters = 2400001
   training.snapshot_freq = 50000
   training.log_freq = 50
@@ -30,16 +30,16 @@ def get_default_configs():
   sampling.init_noise_scale = 1.0
   sampling.use_ode_sampler = 'ode'
   sampling.ode_tol = 1e-5
-  sampling.sample_N = 1000
+  sampling.sample_N = 100  # NOTE: Original N = 1000, number of steps
 
   # evaluation
   config.eval = evaluate = ml_collections.ConfigDict()
   evaluate.begin_ckpt = 50
   evaluate.end_ckpt = 96
-  evaluate.batch_size = 512
+  evaluate.batch_size = 64
   evaluate.enable_sampling = False
   evaluate.enable_figures_only = False
-  evaluate.num_samples = 50000
+  evaluate.num_samples = 50  # NOTE: number of generated samples
   evaluate.enable_loss = False
   evaluate.enable_bpd = False
   evaluate.bpd_dataset = 'test'

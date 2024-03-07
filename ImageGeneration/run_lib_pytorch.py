@@ -205,6 +205,7 @@ def evaluate(config,
 
   # Setup SDEs
   if config.training.sde.lower() == 'rectified_flow':
+    # Init Type -> Gaussian, Init Noise Scale -> 1, 
     sde = sde_lib.RectifiedFlow(init_type=config.sampling.init_type, noise_scale=config.sampling.init_noise_scale, use_ode_sampler=config.sampling.use_ode_sampler, sigma_var=config.sampling.sigma_variance, ode_tol=config.sampling.ode_tol, sample_N=config.sampling.sample_N)
     sampling_eps = 1e-3
   else:
@@ -231,7 +232,7 @@ def evaluate(config,
   if config.eval.bpd_dataset.lower() == 'train':
     ds_bpd = train_ds_bpd
     bpd_num_repeats = 1
-  elif config.eval.bpd_dataset.lower() == 'test':
+  elif config.eval.bpd_dataset.lower() == 'test':  # choose this
     # Go over the dataset 5 times when computing likelihood on the test dataset
     ds_bpd = eval_ds_bpd
     bpd_num_repeats = 5
@@ -239,19 +240,15 @@ def evaluate(config,
     raise ValueError(f"No bpd dataset {config.eval.bpd_dataset} recognized.")
 
   # Build the likelihood computation function when likelihood is enabled
-  if config.eval.enable_bpd:
+  if config.eval.enable_bpd: # False
     likelihood_fn = likelihood.get_likelihood_fn(sde, inverse_scaler)
 
   # Build the sampling function when sampling is enabled
-  if (config.eval.enable_sampling) or (config.eval.enable_figures_only):
+  if (config.eval.enable_sampling) or (config.eval.enable_figures_only): # True
     sampling_shape = (config.eval.batch_size,
                       config.data.num_channels,
                       config.data.image_size, config.data.image_size)
     sampling_fn = sampling.get_sampling_fn(config, sde, sampling_shape, inverse_scaler, sampling_eps)
-
-  # Use inceptionV3 for images with resolution higher than 256.
-  inceptionv3 = config.data.image_size >= 256
-  inception_model = evaluation.get_inception_model(inceptionv3=inceptionv3)
 
   begin_ckpt = config.eval.begin_ckpt
   logging.info("begin checkpoint: %d" % (begin_ckpt,))
@@ -259,6 +256,7 @@ def evaluate(config,
     # Wait if the target checkpoint doesn't exist yet
     waiting_message_printed = False
     ckpt_filename = os.path.join(checkpoint_dir, "checkpoint_{}.pth".format(ckpt))
+    print(f"Training from{ckpt_filename}")
     while not tf.io.gfile.exists(ckpt_filename):
       if not waiting_message_printed:
         logging.warning("Waiting for the arrival of checkpoint_%d" % (ckpt,))
@@ -299,7 +297,7 @@ def evaluate(config,
         fout.write(io_buffer.getvalue())
 
     # Compute log-likelihoods (bits/dim) if enabled
-    if config.eval.enable_bpd:
+    if config.eval.enable_bpd: # False
       bpds = []
       for repeat in range(bpd_num_repeats):
         bpd_iter = iter(ds_bpd)  # pytype: disable=wrong-arg-types
@@ -324,6 +322,10 @@ def evaluate(config,
     
     # Generate samples and compute IS/FID/KID when enabled
     if config.eval.enable_sampling:
+      # Use inceptionV3 for images with resolution higher than 256.
+      inceptionv3 = config.data.image_size >= 256
+      inception_model = evaluation.get_inception_model(inceptionv3=inceptionv3)
+
       num_sampling_rounds = config.eval.num_samples // config.eval.batch_size + 1
       for r in range(num_sampling_rounds):
         logging.info("sampling -- ckpt: %d, round: %d" % (ckpt, r))
@@ -415,3 +417,4 @@ def evaluate(config,
         samples, n = sampling_fn(score_model)
         torchvision.utils.save_image(samples.clamp_(0.0, 1.0), os.path.join(this_sample_dir, '%d.png'%r), nrow=10, normalize=False)
         
+      
