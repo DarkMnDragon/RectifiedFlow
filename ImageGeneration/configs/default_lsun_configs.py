@@ -30,7 +30,7 @@ def get_default_configs():
   sampling.init_noise_scale = 1.0
   sampling.use_ode_sampler = 'ode'
   sampling.ode_tol = 1e-5
-  sampling.sample_N = 100  # NOTE: Original N = 1000, number of steps
+  sampling.sample_N = 500  # NOTE: Original N = 1000, number of steps
 
   # evaluation
   config.eval = evaluate = ml_collections.ConfigDict()
