@@ -1,9 +1,9 @@
 Rectified flow offers a new perspective on understanding diffusion models and their ODE variants. Given the infinite possibilities of ODEs/SDEs to transfer data between two distributions, rectified flow specifically advocates for ODEs with solution paths that are straight lines. This preference forms the basis of a principled approach to learning ODEs, enables fast inference with a very small number of (or even single) Euler steps.
 
 Given two distributions $\pi_0$ and $\pi_1$, rectified flow learns the transport map implicitly by constructing an ODE driven by a drift force $\mathbb R^d \times [0,1]$:
-$$
-\mathrm d \mathbf Z_t = \mathbf v(\mathbf Z_t ,t) \, \mathrm dt, \quad t \in [0,1], \quad \text{staring from }\mathbf Z_0 \sim \mathbf\pi_0
-$$
+
+$$\mathrm d \mathbf Z_t = \mathbf v(\mathbf Z_t ,t) \, \mathrm dt, \quad t \in [0,1], \quad \text{staring from }\mathbf Z_0 \sim \mathbf\pi_0$$
+
 such that we have $\mathbf Z_1 \sim \pi_1$ when following the ODE starting from $\mathbf Z_0 \sim \pi_0$. By injecting strong priors that intermediate trajectories are straight, we can achieve theoretical significance as an essential component for optimal transport [引用 rectified flow], and computational efficiency, because ODEs with straight paths can be precisely simulated without time discretization. 
 
 Specifically, rectified flow works by finding an ODE to match (the marginal distributions of) the linear intepolation of points from $\pi_0$ and $\pi_1$ . For observations $\mathbf{X}_0 \sim \pi_0$ and $\mathbf{X}_1 \sim \pi_1$, the linear interpolation $\mathbf{X}_t=t\mathbf{X}_1 + (1-t)\mathbf{X}_0, t\in [0,1]$ results in a trivial solution $\mathrm{d}\mathbf{X}_t = (\mathbf{X}_1 - \mathbf{X}_0)\mathrm{d}t$, which cannot be causally simulated without knowing $\mathbf{X}_1$. To overcome this, we can "project" the interpolation $\mathbf{X}_t$ into a space of causally simulatable ODEs, expressed as $\mathrm{d}\mathbf{Z}_t = \mathbf{v}(\mathbf{Z}_t ,t)$, finding $\mathbf v$ by minimizing the least squares loss with the line directions $\mathbf X_1 - \mathbf X_0$:
