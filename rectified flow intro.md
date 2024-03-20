@@ -8,9 +8,7 @@ such that we have $\mathbf Z_1 \sim \pi_1$ when following the ODE starting from 
 
 Specifically, rectified flow works by finding an ODE to match (the marginal distributions of) the linear intepolation of points from $\pi_0$ and $\pi_1$ . For observations $\mathbf{X}_0 \sim \pi_0$ and $\mathbf{X}_1 \sim \pi_1$, the linear interpolation $\mathbf{X}_t=t\mathbf{X}_1 + (1-t)\mathbf{X}_0, t\in [0,1]$ results in a trivial solution $\mathrm{d}\mathbf{X}_t = (\mathbf{X}_1 - \mathbf{X}_0)\mathrm{d}t$, which cannot be causally simulated without knowing $\mathbf{X}_1$. To overcome this, we can "project" the interpolation $\mathbf{X}_t$ into a space of causally simulatable ODEs, expressed as $\mathrm{d}\mathbf{Z}_t = \mathbf{v}(\mathbf{Z}_t ,t)$, finding $\mathbf v$ by minimizing the least squares loss with the line directions $\mathbf X_1 - \mathbf X_0$:
 $$
-\begin{align} 
 \min_{\mathbf v} \int_0^1  \mathbb{E}\left [\lVert{(\mathbf X_1-\mathbf X_0) - \mathbf v(\mathbf X_t, t)}\rVert^2\right] \,\mathrm{d}t.  
-\end{align}
 $$
 In practice, we can parameterize $\mathbf{v}$ with a neural network and solve it using a stochastic optimizer. In this way, rectified flow converts an *arbitrary coupling* into a *deterministic coupling* with no larger convex transport costs.
 
