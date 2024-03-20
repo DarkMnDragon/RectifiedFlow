@@ -1,0 +1,19 @@
+Rectified flow offers a new perspective on understanding diffusion models and their ODE variants. Given the infinite possibilities of ODEs/SDEs to transfer data between two distributions, rectified flow specifically advocates for ODEs with solution paths that are straight lines. This preference forms the basis of a principled approach to learning ODEs, enables fast inference with a very small number of (or even single) Euler steps.
+
+Given two distributions $\pi_0$ and $\pi_1$, rectified flow learns the transport map implicitly by constructing an ODE driven by a drift force $\mathbb R^d \times [0,1]$:
+$$
+\mathrm d \mathbf Z_t = \mathbf v(\mathbf Z_t ,t) \, \mathrm dt, \quad t \in [0,1], \quad \text{staring from }\mathbf Z_0 \sim \mathbf\pi_0
+$$
+such that we have $\mathbf Z_1 \sim \pi_1$ when following the ODE starting from $\mathbf Z_0 \sim \pi_0$. By injecting strong priors that intermediate trajectories are straight, we can achieve theoretical significance as an essential component for optimal transport [引用 rectified flow], and computational efficiency, because ODEs with straight paths can be precisely simulated without time discretization. 
+
+Specifically, rectified flow works by finding an ODE to match (the marginal distributions of) the linear intepolation of points from $\pi_0$ and $\pi_1$ . For observations $\mathbf{X}_0 \sim \pi_0$ and $\mathbf{X}_1 \sim \pi_1$, the linear interpolation $\mathbf{X}_t=t\mathbf{X}_1 + (1-t)\mathbf{X}_0, t\in [0,1]$ results in a trivial solution $\mathrm{d}\mathbf{X}_t = (\mathbf{X}_1 - \mathbf{X}_0)\mathrm{d}t$, which cannot be causally simulated without knowing $\mathbf{X}_1$. To overcome this, we can "project" the interpolation $\mathbf{X}_t$ into a space of causally simulatable ODEs, expressed as $\mathrm{d}\mathbf{Z}_t = \mathbf{v}(\mathbf{Z}_t ,t)$, finding $\mathbf v$ by minimizing the least squares loss with the line directions $\mathbf X_1 - \mathbf X_0$:
+$$
+\begin{align} 
+\min_{\mathbf v} \int_0^1  \mathbb{E}\left [\lVert{(\mathbf X_1-\mathbf X_0) - \mathbf v(\mathbf X_t, t)}\rVert^2\right] \,\mathrm{d}t.  
+\end{align}
+$$
+In practice, we can parameterize $\mathbf{v}$ with a neural network and solve it using a stochastic optimizer. In this way, rectified flow converts an *arbitrary coupling* into a *deterministic coupling* with no larger convex transport costs.
+
+
+
+Now, since a velocity field defines another probabilistic coupling, by integrating the velocity field into a path, we can iterate the rectified flow operation. Eventually, we would obtain a probabilistic coupling between noise and natural-looking images that are connected by mostly-straight paths in a vector field. This then gives us a particularly nice forward process. We can then train a backward process neural network by the same denoising loss function. Since the forward process consists of rather straight paths, instead of jagged Brownian motion paths, the backward process can be nicer and can handle large steps in Euler sampling.<ref name=":7">{{Citation |last=Liu |first=Xingchao |title=Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow |date=2022-09-07 |url=http://arxiv.org/abs/2209.03003 |access-date=2024-03-06 |doi=10.48550/arXiv.2209.03003 |last2=Gong |first2=Chengyue |last3=Liu |first3=Qiang}}</ref><ref name=":8">{{Cite web |title=Rectified Flow — Rectified Flow |url=https://www.cs.utexas.edu/~lqiang/rectflow/html/intro.html |access-date=2024-03-06 |website=www.cs.utexas.edu}}</ref>
